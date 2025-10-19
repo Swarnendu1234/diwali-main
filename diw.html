@@ -219,6 +219,72 @@
       z-index: 5;
     }
 
+    /* Start overlay for autoplay compliance */
+    .start-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(11, 16, 32, 0.98);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(10px);
+      transition: opacity 0.5s ease;
+    }
+
+    .start-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .start-btn {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border: none;
+      color: #111;
+      padding: 18px 40px;
+      border-radius: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 1.3rem;
+      box-shadow: 0 10px 30px rgba(255, 120, 150, 0.5);
+      transition: all 0.3s ease;
+      animation: pulse 2s infinite;
+    }
+
+    .start-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 15px 40px rgba(255, 120, 150, 0.6);
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    .start-overlay h2 {
+      font-size: 2.5rem;
+      color: var(--accent);
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px rgba(255, 184, 107, 0.7);
+      font-family: 'Great Vibes', cursive;
+    }
+
+    .start-overlay p {
+      margin-bottom: 30px;
+      font-size: 1.1rem;
+      color: rgba(255, 255, 255, 0.9);
+    }
 
     @media (max-width: 600px) {
       h1 {
@@ -238,6 +304,13 @@
 </head>
 
 <body>
+
+  <!-- Start Overlay for Music Autoplay -->
+  <div class="start-overlay" id="startOverlay">
+    <h2>🪔 Happy Diwali 🪔</h2>
+    <p>Click below to begin the celebration!</p>
+    <button class="start-btn" id="startBtn">Start Experience</button>
+  </div>
 
   <canvas id="fwCanvas"></canvas>
 
@@ -317,6 +390,24 @@
     const festivalText = document.getElementById("festivalText");
     const lights = document.getElementById("lights");
     const music = document.getElementById("music");
+    const startOverlay = document.getElementById("startOverlay");
+    const startBtn = document.getElementById("startBtn");
+
+    // Start experience button - enables music autoplay
+    startBtn.addEventListener("click", () => {
+      // Start music
+      music.play().then(() => {
+        console.log('Music started successfully');
+      }).catch((error) => {
+        console.log('Error playing music:', error);
+      });
+
+      // Hide overlay
+      startOverlay.classList.add('hidden');
+
+      // Start typing animation
+      typeText(festivalText, "Celebrate the Festival of Lights ✨", 120);
+    });
 
     // multicolor bulbs
     const colors = ['#ff7675', '#74b9ff', '#55efc4', '#ffeaa7', '#fab1a0', '#a29bfe'];
@@ -337,27 +428,21 @@
       const interval = setInterval(() => { element.textContent = text.slice(0, i++); if (i > text.length) clearInterval(interval); }, speed);
     }
 
-    // Start typing festival message on load
-    typeText(festivalText, "Celebrate the Festival of Lights ✨", 120);
-
-    window.addEventListener('load', () => {
-      music.play().catch((error) => {
-        console.log('Autoplay prevented. User interaction required.');
-      });
-    });
-
-
+    // Stop music when user leaves the page
     window.addEventListener('beforeunload', () => {
       music.pause();
       music.currentTime = 0;
     });
 
-
+    // Pause/resume music when tab visibility changes
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         music.pause();
       } else {
-        music.play().catch(() => { });
+        // Only resume if user has already started the experience
+        if (startOverlay.classList.contains('hidden')) {
+          music.play().catch(() => { });
+        }
       }
     });
 
