@@ -337,7 +337,11 @@
 
   <footer>Developed by <strong>Avilash Sinha Roy</strong></footer>
 
-  <audio id="music" src="diwali.mp3" preload="auto" loop></audio>
+  <audio id="music" preload="auto" loop>
+    <source src="diwali.mp3" type="audio/mpeg">
+    <source src="./diwali.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
 
   <script>
     const canvas = document.getElementById("fwCanvas");
@@ -395,12 +399,22 @@
 
     // Start experience button - enables music autoplay
     startBtn.addEventListener("click", () => {
-      // Start music
-      music.play().then(() => {
-        console.log('Music started successfully');
-      }).catch((error) => {
-        console.log('Error playing music:', error);
-      });
+      // Ensure music is loaded and ready
+      music.volume = 0.7; // Set volume to 70%
+      music.load(); // Reload the audio
+
+      // Start music with a slight delay to ensure loading
+      setTimeout(() => {
+        music.play().then(() => {
+          console.log('Music started successfully');
+        }).catch((error) => {
+          console.error('Error playing music:', error);
+          // Try one more time
+          setTimeout(() => {
+            music.play().catch(e => console.error('Retry failed:', e));
+          }, 500);
+        });
+      }, 100);
 
       // Hide overlay
       startOverlay.classList.add('hidden');
@@ -449,7 +463,10 @@
     btn.addEventListener("click", () => {
       popup.classList.add("active");
       mainContent.style.opacity = "0";
-      music.play().catch(() => { });
+      // Ensure music is playing
+      if (music.paused) {
+        music.play().catch(e => console.error('Music play error:', e));
+      }
       typeText(typedText, "🎆 Happy Diwali 🎆", 150);
       // continuous fireworks
       setInterval(() => fireworks(rand(cw * 0.2, cw * 0.8), rand(ch * 0.2, ch * 0.7)), 600);
